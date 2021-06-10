@@ -6,21 +6,34 @@ Started on 6/9/21
 from selenium import webdriver
 
 #Define x_path variables. These are the names of the x_paths that contain the information needed
-
+test_urls = ["https://cheapdigitaldownload.com/gta-5-digital-download-price-comparison/", "https://cheapdigitaldownload.com/rust-digital-download-price-comparison/"]
+row_xpath = '//*[@id="offer_offer"]'
 
 
 def main ():
-    pass
+    print(get_content(test_urls, row_xpath))
 
-def get_content(url, x_path):
+def get_content(urls, x_path):
+    webelements = []
+
     driver = webdriver.Firefox()
-    driver.get(url)
-    listings = driver.find_elements_by_xpath(x_path)
-    return listings
+
+    for url in urls:
+        print(url)
+        url_info = [] #index 0 holds url, 1 holds the list of web elements
+        driver.get(url)
+        listings = driver.find_elements_by_xpath(x_path)
+
+        url_info.append(url)
+        url_info.append(listings)
+        webelements.append(url_info)
+
+    return webelements
+
     '''
     This function opens the given url with webdriver, and gets the class content for the specified id
     @param url to open, and class_id to look for
-    @returns a list of WebElement objects
+    @returns a list of WebElement object lists where index 0 is the link
     '''
 
 def get_price_info(web_element_list):
@@ -60,5 +73,4 @@ def get_price_info(web_element_list):
         
 
 
-print(get_price_info(get_content("https://cheapdigitaldownload.com/gta-5-digital-download-price-comparison/",'//*[@id="offer_offer"]')))
-
+main()

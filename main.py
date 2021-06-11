@@ -118,11 +118,6 @@ class Listing():
         return self.price
 
 class Listing_Page():
-    #Define variables
-
-    cheapest_listing = None #stores the value for the cheapest listing
-    profit_margin = 0 
-    cheapest_listing = None
 
     #This class takes a list of listings that make up a whole page, and will contain metrics for determining if it is a good deal
     def __init__(self, listings):
@@ -137,7 +132,6 @@ class Listing_Page():
             if listing.get_price() < self.cheapest_listing.get_price():
                 self.cheapest_listing = listing
 
-        print(self.cheapest_listing.get_price())
         self.profit_margin = self.home_listing.get_price() / self.cheapest_listing.get_price()
         #Find the listing that matches the name for HOME_STORE. Set it equal to self.home_store
     

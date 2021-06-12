@@ -7,45 +7,110 @@ from selenium import webdriver
 import os
 from datetime import date
 
-test_urls2 = ["https://cheapdigitaldownload.com/days-gone-digital-download-price-comparison/", "https://cheapdigitaldownload.com/minecraft-digital-download-price-comparison/", "https://cheapdigitaldownload.com/resident-evil-village-editions-a-2021-04/", "https://cheapdigitaldownload.com/battlefield-5-digital-download-price-comparison/"]
-test_urls = ["https://cheapdigitaldownload.com/days-gone-digital-download-price-comparison/"]
+
 row_xpath = '//*[@id="offer_offer"]'
 HOME_STORE = 'G2A'
-WORKING_DIRECTORY = 'c://Users//18022//Desktop//Python//CDD//reports'
-MIN_PROFIT = 1.5 #the minimum value for profit_margin to put a report in the flagged folder
-
+WORKING_DIRECTORY = 'c://Users//18022//Desktop//Python//CDD'
+MIN_PROFIT = 1.7 #the minimum value for profit_margin to put a report in the flagged folder
+test_urls = ['https://cheapdigitaldownload.com/the-witcher-3-wild-hunt-digital-download-price-comparison/', 'https://cheapdigitaldownload.com/escape-from-tarkov-digital-download-price-comparison/', 'https://cheapdigitaldownload.com/garrys-mod-digital-download-price-comparison/']
+BANNED_BUYERS = ['Microsoft', 'Epic Games', 'Steam']
 def main ():
-    #move to wd
-    '''
     os.chdir(WORKING_DIRECTORY)
+
+    #open link_getter file, and append that to urls
+    urls = []
+    link_getter_file_name = 'link_getter - ' + str(date.today()) + '.txt'
+    with open(link_getter_file_name, 'r') as link_file:
+        Lines = link_file.readlines()
+        for line in Lines:
+            urls.append(line)
+
+    os.chdir('./reports')
+
     #create a folder for the date, and within that have two folders, one called flagged to hold listing_pages with a value >= MIN_PROFIT and one for all other reports
     os.mkdir(str(date.today()))
     #move to new directory
     os.chdir(str(date.today()))
-    print(os.getcwd())
    #make new folders
     os.mkdir("flagged")
     os.mkdir("all")
-'''
+
 
     #iterate through all urls 
-    for url in test_urls:
+    for url in urls:
+        url = url[:-2]
+        dir_control = 0 #if set to 1, do not go back one directory at the end of the loop
+
     #use get content to get a list of lists comtaining links and web elements
         content = get_content(url, row_xpath)
-        game_name = url[33:-1] #will be used for making folder
+        game_name = url[33:] #will be used for making folder
+        text_doc_name = game_name + ".txt"
         
         #get price info
-        info = get_price_info(content[0])
-        print(info)
-
+        price_info = get_price_info(content[0][1]) #first return item, second item in that list. 
+        #close web driver
+        content[1].close()
+        #verify that HOME_STORE in price_info[0]
+        if HOME_STORE in price_info[0]:
+            #create listing page
+            listing_page = create_listing_page(price_info)
+            #If profit margin > min profit, move to flagged, if not move to all.
+            if listing_page.profit_margin > MIN_PROFIT:
+                os.chdir('flagged')
+            else:
+                os.chdir('all')
         
-    
-'''
-    content = get_content(test_urls, row_xpath)[0][1]
-    price_info = get_price_info(content)
-    lp = Listing_Page(create_listing_list(price_info))
-    print(lp.get_profit_margin())
-'''
+        #now create a text document with game_name as the name
+            
+        else:
+            print(f'{HOME_STORE} listing was not found for {game_name}')
+            dir_control = 1
+            continue
+        #open file and print info
+
+        text_document = open(text_doc_name, 'w+')
+        text_document.write(f'Report for {game_name}, created on {date.today()}\n\n\n')
+        text_document.write(f'Important Metrics:\nCheapest Price: ${listing_page.get_cheapest_listing().get_price()}\nProfit Margin: {round(listing_page.get_profit_margin(), 2)}\n\n')
+
+        #print info for home listing
+        text_document.write('Home Store: \n')
+        text_document.write('Store: ')
+        text_document.write(listing_page.get_home_listing().get_store())
+        text_document.write('\nVersion: ')
+        text_document.write(listing_page.get_home_listing().get_version())
+        text_document.write('\nRegion: ')
+        text_document.write(listing_page.get_home_listing().get_region())
+        text_document.write('\nPrice: ')
+        text_document.write(str(listing_page.get_home_listing().get_price()))
+
+        #Create header for all listings
+        text_document.write('\n\n\nListings:\n\n')
+        text_document.write(format('Store', '<20'))
+        text_document.write(format('Version', '<20'))
+        text_document.write(format('Region', '<20'))
+        text_document.write(format('Price', '<20'))
+        text_document.write(format('Profit Ratio', '<20'))
+        text_document.write(format('\n'))
+
+        for listing in listing_page.get_listings():
+            text_document.write(format(listing.get_store(), '<20'))
+            text_document.write(format(listing.get_version(), '<20'))
+            text_document.write(format(listing.get_region(), '<20'))
+            text_document.write('$')
+            text_document.write(format(listing.get_price(), '<19'))
+            text_document.write(format(round(listing_page.get_home_listing().get_price() / listing.get_price(), 2), '<15'))
+            text_document.write('\n')
+        text_document.close()
+                
+        
+        #go back to dir for the day
+
+        if dir_control == 0:
+            os.chdir('..')
+
+        print(f'Process Completed for {game_name}! The profit ratio was {round(listing_page.get_profit_margin(), 2)}')
+
+
 
 def get_content(url, x_path):
 
@@ -101,7 +166,7 @@ def get_price_info(web_element_list):
     @return a list where index 0 is store, 1 is region, 2 is version, and 3 is price
     '''
 
-def create_listing_list(listing_info_list):
+def create_listing_page(listing_info_list):
     loop_control = 0
     listings = []
     for listing in listing_info_list[0]:
@@ -112,7 +177,7 @@ def create_listing_list(listing_info_list):
         listings.append(Listing(store, region, version, price))
         loop_control += 1
     
-    return listings
+    return Listing_Page(listings)
     '''
     This function creates a Listing_Page object
     @param it takes a list from get_price_info where index 0 is store, 1 is region, 2 is version, and 3 is price
@@ -144,18 +209,21 @@ class Listing_Page():
 
     #This class takes a list of listings that make up a whole page, and will contain metrics for determining if it is a good deal
     def __init__(self, listings):
+        self.home_listing = None
         self.listings = listings
+
         for listing in self.listings:
-            if listing.get_store() == HOME_STORE:
+            if listing.get_store() == HOME_STORE and self.home_listing == None:
                 self.home_listing = listing
 
         #Go through each listing to see find the lowest
-        self.cheapest_listing = self.home_listing
-        for listing in self.listings:
-            if listing.get_price() < self.cheapest_listing.get_price():
-                self.cheapest_listing = listing
+        if self.home_listing != None:
+            self.cheapest_listing = self.home_listing
+            for listing in self.listings:
+                if listing.get_price() < self.cheapest_listing.get_price() and self.cheapest_listing == self.home_listing and listing.get_store not in BANNED_BUYERS:
+                    self.cheapest_listing = listing
 
-        self.profit_margin = self.home_listing.get_price() / self.cheapest_listing.get_price()
+            self.profit_margin = self.home_listing.get_price() / self.cheapest_listing.get_price()
         #Find the listing that matches the name for HOME_STORE. Set it equal to self.home_store
     
 
@@ -170,6 +238,9 @@ class Listing_Page():
 
     def get_profit_margin (self):
         return self.profit_margin
+    
+    def get_listings (self):
+        return self.listings
     
 
 main()

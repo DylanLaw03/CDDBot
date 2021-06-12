@@ -5,44 +5,67 @@ Started on 6/9/21
 #import dependencies
 from selenium import webdriver
 import os
+from datetime import date
 
+test_urls2 = ["https://cheapdigitaldownload.com/days-gone-digital-download-price-comparison/", "https://cheapdigitaldownload.com/minecraft-digital-download-price-comparison/", "https://cheapdigitaldownload.com/resident-evil-village-editions-a-2021-04/", "https://cheapdigitaldownload.com/battlefield-5-digital-download-price-comparison/"]
 test_urls = ["https://cheapdigitaldownload.com/days-gone-digital-download-price-comparison/"]
 row_xpath = '//*[@id="offer_offer"]'
-HOME_STORE = 'Kinguin'
+HOME_STORE = 'G2A'
 WORKING_DIRECTORY = 'c://Users//18022//Desktop//Python//CDD//reports'
+MIN_PROFIT = 1.5 #the minimum value for profit_margin to put a report in the flagged folder
 
 def main ():
-
+    #move to wd
+    '''
     os.chdir(WORKING_DIRECTORY)
+    #create a folder for the date, and within that have two folders, one called flagged to hold listing_pages with a value >= MIN_PROFIT and one for all other reports
+    os.mkdir(str(date.today()))
+    #move to new directory
+    os.chdir(str(date.today()))
+    print(os.getcwd())
+   #make new folders
+    os.mkdir("flagged")
+    os.mkdir("all")
+'''
 
-    test = [Listing('G2A', 'Global', 'NA', '7'),  Listing('Kinguin', 'Global', 'NA', '3')]
+    #iterate through all urls 
+    for url in test_urls:
+    #use get content to get a list of lists comtaining links and web elements
+        content = get_content(url, row_xpath)
+        game_name = url[33:-1] #will be used for making folder
+        
+        #get price info
+        info = get_price_info(content[0])
+        print(info)
+
+        
+    
+'''
     content = get_content(test_urls, row_xpath)[0][1]
     price_info = get_price_info(content)
     lp = Listing_Page(create_listing_list(price_info))
     print(lp.get_profit_margin())
+'''
 
-
-def get_content(urls, x_path):
-    webelements = []
+def get_content(url, x_path):
 
     driver = webdriver.Firefox()
 
-    for url in urls:
 
-        url_info = [] #index 0 holds url, 1 holds the list of web elements
-        driver.get(url)
-        listings = driver.find_elements_by_xpath(x_path)
+    url_info = [] #index 0 holds url, 1 holds the list of web elements
+    driver.get(url)
+    listings = driver.find_elements_by_xpath(x_path)
 
-        url_info.append(url)
-        url_info.append(listings)
-        webelements.append(url_info)
+    url_info.append(url)
+    url_info.append(listings)
 
-    return webelements
+    
+    return url_info, driver
 
     '''
     This function opens the given url with webdriver, and gets the class content for the specified id
     @param url to open, and class_id to look for
-    @returns a list of WebElement object lists where index 0 is the link
+    @returns a list of WebElement object lists where index 0 is the link, and driver in index one, so that it can be closed
     '''
 
 def get_price_info(web_element_list):

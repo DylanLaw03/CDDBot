@@ -13,7 +13,7 @@ HOME_STORE = 'G2A'
 WORKING_DIRECTORY = 'c://Users//18022//Desktop//Python//CDD'
 MIN_PROFIT = 1.7 #the minimum value for profit_margin to put a report in the flagged folder
 test_urls = ['https://cheapdigitaldownload.com/the-witcher-3-wild-hunt-digital-download-price-comparison/', 'https://cheapdigitaldownload.com/escape-from-tarkov-digital-download-price-comparison/', 'https://cheapdigitaldownload.com/garrys-mod-digital-download-price-comparison/']
-BANNED_BUYERS = ['Microsoft', 'Epic Games', 'Steam']
+BANNED_STORES = ['Microsoft', 'Epic Games', 'Steam', 'Gog.com', 'Kinguin', 'G2A']
 def main ():
     os.chdir(WORKING_DIRECTORY)
 
@@ -204,6 +204,11 @@ class Listing():
     
     def get_price (self):
         return self.price
+    
+    def equals (self, object2):
+        if object2.get_region() == self.region and object2.get_version() == self.version:
+            return True
+        return False
 
 class Listing_Page():
 
@@ -220,7 +225,7 @@ class Listing_Page():
         if self.home_listing != None:
             self.cheapest_listing = self.home_listing
             for listing in self.listings:
-                if listing.get_price() < self.cheapest_listing.get_price() and self.cheapest_listing == self.home_listing and listing.get_store not in BANNED_BUYERS:
+                if listing.get_price() < self.cheapest_listing.get_price() and listing.get_store() not in BANNED_STORES and listing.equals(self.home_listing):
                     self.cheapest_listing = listing
 
             self.profit_margin = self.home_listing.get_price() / self.cheapest_listing.get_price()

@@ -12,7 +12,6 @@ row_xpath = '//*[@id="offer_offer"]'
 HOME_STORE = 'G2A'
 WORKING_DIRECTORY = 'c://Users//18022//Desktop//Python//CDD'
 MIN_PROFIT = 1.7 #the minimum value for profit_margin to put a report in the flagged folder
-test_urls = ['https://cheapdigitaldownload.com/the-witcher-3-wild-hunt-digital-download-price-comparison/', 'https://cheapdigitaldownload.com/escape-from-tarkov-digital-download-price-comparison/', 'https://cheapdigitaldownload.com/garrys-mod-digital-download-price-comparison/']
 BANNED_STORES = ['Microsoft', 'Epic Games', 'Steam', 'Gog.com', 'Kinguin', 'G2A']
 def main ():
     os.chdir(WORKING_DIRECTORY)
@@ -84,7 +83,7 @@ def main ():
         text_document.write(str(listing_page.get_home_listing().get_price()))
 
         #print info for cheapest listing
-        text_document.write('Cheapest Store: \n')
+        text_document.write('\n\nCheapest Store: \n')
         text_document.write('Store: ')
         text_document.write(listing_page.get_cheapest_listing().get_store())
         text_document.write('\nVersion: ')
@@ -236,6 +235,7 @@ class Listing_Page():
         if self.home_listing != None:
             self.cheapest_listing = self.home_listing
             for listing in self.listings:
+                #verify that price is lower than current cheapest, that store is not banned, and that the listing is equal to home store.
                 if listing.get_price() < self.cheapest_listing.get_price() and listing.get_store() not in BANNED_STORES and listing.equals(self.home_listing):
                     self.cheapest_listing = listing
 

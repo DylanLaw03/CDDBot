@@ -70,7 +70,7 @@ def main ():
 
         text_document = open(text_doc_name, 'w+')
         text_document.write(f'Report for {game_name}, created on {date.today()}\n\n\n')
-        text_document.write(f'Important Metrics:\nCheapest Price: ${listing_page.get_cheapest_listing().get_price()}\nProfit Margin: {round(listing_page.get_profit_margin(), 2)}\n\n')
+        text_document.write(f'Profit Margin: {round(listing_page.get_profit_margin(), 2)}\n\n')
 
         #print info for home listing
         text_document.write('Home Store: \n')
@@ -82,6 +82,17 @@ def main ():
         text_document.write(listing_page.get_home_listing().get_region())
         text_document.write('\nPrice: ')
         text_document.write(str(listing_page.get_home_listing().get_price()))
+
+        #print info for cheapest listing
+        text_document.write('Cheapest Store: \n')
+        text_document.write('Store: ')
+        text_document.write(listing_page.get_cheapest_listing().get_store())
+        text_document.write('\nVersion: ')
+        text_document.write(listing_page.get_cheapest_listing().get_version())
+        text_document.write('\nRegion: ')
+        text_document.write(listing_page.get_cheapest_listing().get_region())
+        text_document.write('\nPrice: ')
+        text_document.write(str(listing_page.get_cheapest_listing().get_price()))
 
         #Create header for all listings
         text_document.write('\n\n\nListings:\n\n')
